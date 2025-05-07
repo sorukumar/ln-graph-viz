@@ -323,9 +323,7 @@ function createVisualization(data) {
     });
 
     // Force Atlas 2 layout
-    const forceAtlas2 = graphology.layouts && graphology.layouts.forceAtlas2 ? 
-                       graphology.layouts.forceAtlas2 : 
-                       window.forceAtlas2;
+    const forceAtlas2 = graphologyLibrary.layoutForceAtlas2; 
                        
     if (!forceAtlas2) {
         console.error('ForceAtlas2 layout not found');
