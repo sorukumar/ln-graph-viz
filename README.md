@@ -1,74 +1,95 @@
 # Lightning Network Graph Visualization
 
-An interactive web-based visualization of the Lightning Network, developed by Bitcoin Data Labs. Explore Lightning Network nodes and channels through an intuitive, interactive interface with multiple dataset views and real-time statistics.
+An interactive web-based visualization of the Lightning Network, updated daily, developed by **Bitcoin Data Labs**. Explore Lightning Network nodes and channels through an intuitive interface with advanced filtering, bridge analysis, and real-time statistics.
+
+🔗 **[Live Demo](https://sorukumar.github.io/ln-graph-viz/)**
 
 ## Features
 
-- **Interactive Graph Visualization**: Pan, zoom, and click on nodes/edges
-- **Multiple Dataset Views**: Different channel types (All, Freeway, Highway)
-- **Dynamic Layout**: Force-directed graph layout with user controls
-- **Search Functionality**: Find nodes by name/alias
-- **Detailed Information Panels**: Node and channel details in sidebar
-- **Real-time Statistics**: Live node/edge counts and total capacity
-- **Responsive Design**: Works on desktop and mobile devices
+- **Interactive Graph Visualization**: Pan, zoom, and click on nodes/edges to explore the network.
+- **Multiple Dataset Views**: Filter by channel capacity:
+  - Complete Network (all channels)
+  - Freeway Network (>1 BTC channels)
+  - Highway Network (>5M sats channels)
+- **Advanced Filtering**:
+  - **Pleb Rank**: Filter nodes by top N rankings.
+  - **Node Bridges**: Identify critical bridge nodes and network bottlenecks.
+  - **Channel Bridges**: Highlight bridge channels connecting network clusters.
+- **Dynamic Force-Directed Layout**: Real-time graph layout with user controls.
+- **Search Functionality**: Find nodes by name or alias.
+- **Detailed Information Panels**: View node and channel details in the sidebar.
+- **Real-time Statistics**: Live node/channel counts and total network capacity.
+- **Responsive Design**: Optimized for desktop and mobile devices.
 
-## Getting Started
+## How to Use
 
-### Prerequisites
-- Modern web browser (Chrome 90+, Firefox 88+, Safari 14+)
-- Local web server (for file loading security)
+### 1. Select a Dataset
 
-### Quick Setup
-1. **Clone/Download the project**
-2. **Start a local server**:
-   ```bash
-   # Python 3
-   python -m http.server 8000
-   
-   # Python 2
-   python -m SimpleHTTPServer 8000
-   
-   # Node.js (if you have http-server installed)
-   npx http-server
-   
-   # VS Code Live Server extension
-   # Right-click index.html → "Open with Live Server"
-   ```
-3. **Open browser** and navigate to `http://localhost:8000`
-4. **Select a visualization** from the landing page
+On the main page, choose from the available datasets:
 
-### How to Use the Graphs
+- **Complete Network** (`gall.json`): All channels (≈12,000+ nodes, 40,000+ channels).
+- **Freeway Network** (`gfree.json`): High-capacity channels (>1 BTC).
+- **Highway Network** (`ghigh.json`): Medium-capacity channels (>5M sats).
 
-1. **Dataset Selection**: On the landing page (`index.html`), choose from available datasets:
-   - **All Channels** (`gall.json`): Complete network data (~2000+ nodes)
-   - **Freeway Channels** (`gfree.json`): Freeway channels only
-   - **Highway Channels** (`ghigh.json`): Highway channels only
+### 2. Navigate the Graph
 
-2. **Navigation**:
-   - **Pan**: Click and drag to move around the graph
-   - **Zoom**: Use mouse wheel or zoom controls
-   - **Search**: Type in the search box to find nodes by name/alias
+- **Pan**: Click and drag to move around the graph.
+- **Zoom**: Use the mouse wheel or zoom controls.
+- **Reset**: Click *Reset* to return to the default view.
+- **Search**: Type in the search box to find nodes by name/alias.
 
-3. **Interaction**:
-   - **Hover**: See tooltips with node/edge information
-   - **Click Nodes/Edges**: View detailed information in the sidebar
-   - **Layout Controls**: Start/stop the force-directed layout algorithm
+### 3. Apply Filters
 
-4. **Understanding the Visualization**:
-   - **Node Colors**: Represent different node types (LSP: Green, Exchange: Blue, Wallet: Yellow, etc.)
-   - **Node Size**: Based on number of channels (larger = more connections)
-   - **Edge Colors**: Represent channel types (Freeway: Pink, Highway: Indigo, Default: Gray)
-   - **Edge Width**: Based on channel capacity (thicker = higher capacity)
+Use the filters panel to focus on specific network structures:
 
-5. **Statistics**: View real-time network statistics in the top panel
+- **Pleb Rank (Top N)**:
+  - Select `All` or restrict to top N ranked nodes.
 
-For detailed technical information, see [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).
+- **Node Bridges**:
+  - **Show All Nodes**: Default view.
+  - **Critical Bridge Only**: Show only nodes whose removal would disconnect parts of the network.
+  - **Any Bridge Only**: Show nodes that act as bridges between clusters.
 
-## Cite
+- **Channel Bridges**:
+  - **Show All Channels**: Default view.
+  - **Bridge Channels Only**: Show channels that connect different parts of the graph.
 
-If you find this visualization helpful in your research or work, please cite it as:
+Click **Apply Filters** to update the view, or **Clear** to reset filters.
 
-```
+### 4. Explore Node and Channel Details
+
+- **Hover** over nodes/edges to see quick tooltips.
+- **Click a node** to view detailed node information (capacity, degree, connections, etc.) in the *Node Information* panel.
+- **Click a channel (edge)** to view detailed channel information in the *Channel Information* panel.
+
+### 5. Understand the Visualization
+
+- **Node Colors**: Represent different network clusters/communities.
+- **Node Size**: Proportional to the number of channels (larger = more connected).
+- **Edge Width**: Proportional to channel capacity (thicker = higher capacity).
+- **Statistics Panel**: Top panel shows real-time metrics such as:
+  - Total nodes
+  - Total channels
+  - Aggregate capacity
+
+## Tech Stack
+
+- **Backend / Data Processing**: Python (for statistics and network analysis).
+- **Frontend**: JavaScript.
+- **Graph Rendering**: [Sigma.js](https://www.sigmajs.org/).
+- **Data Format**: JSON graph data, updated regularly.
+
+## Development
+
+For detailed technical information, including data formats, architecture, and how to extend or contribute, see:
+
+- [`DEVELOPER_GUIDE.md`](DEVELOPER_GUIDE.md)
+
+## Citation
+
+If you find this visualization helpful in your research or work, please cite:
+
+```bibtex
 @misc{ln-graph-viz,
   author = {Saurabh Kumar and Bitcoin Data Labs},
   title = {Lightning Network Graph Visualization},
@@ -76,7 +97,6 @@ If you find this visualization helpful in your research or work, please cite it 
   publisher = {GitHub},
   url = {https://github.com/sorukumar/ln-graph-viz}
 }
-```
 
 ## License
 
