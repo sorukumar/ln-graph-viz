@@ -6,7 +6,7 @@
     <title>Lightning Graph Viz – Interactive Network Visualization</title>
     
     <!-- Bitcoin Data Labs styles -->
-    <link rel="stylesheet" href="https://sorukumar.github.io/Bitcoin-Data-Labs/styles/styles.css">
+    <link rel="stylesheet" href="https://bitcoindatalabs.org/styles/styles.css" onerror="this.onerror=null; this.href='https://sorukumar.github.io/Bitcoin-Data-Labs/styles/styles.css'">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Local styles -->
@@ -162,15 +162,43 @@
     <div id="footer"></div>
 
     <!-- Bitcoin Data Labs App Components -->
-    <script src="https://sorukumar.github.io/Bitcoin-Data-Labs/components/app-components.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            BitcoinLabsAppComponents.init({
-                isApp: true,
-                appName: "ln-graph-viz",
-                appHomeUrl: "https://sorukumar.github.io/ln-graph-viz/"
-            });
-        });
+        function loadBitcoinLabsScript(primarySrc, fallbackSrc, callback) {
+            const script = document.createElement('script');
+            script.src = primarySrc;
+            script.onload = callback;
+            script.onerror = () => {
+                const fallback = document.createElement('script');
+                fallback.src = fallbackSrc;
+                fallback.onload = callback;
+                document.head.appendChild(fallback);
+            };
+            document.head.appendChild(script);
+        }
+
+        function getAppHomeUrl() {
+            return window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+        }
+
+        loadBitcoinLabsScript(
+            'https://bitcoindatalabs.org/components/app-components.js',
+            'https://sorukumar.github.io/Bitcoin-Data-Labs/components/app-components.js',
+            () => {
+                const appConfig = {
+                    isApp: true,
+                    appName: 'ln-graph-viz',
+                    appHomeUrl: getAppHomeUrl()
+                };
+
+                if (window.BitcoinLabsApp && typeof BitcoinLabsApp.init === 'function') {
+                    BitcoinLabsApp.init(appConfig);
+                }
+
+                if (window.BitcoinLabsAppComponents && typeof BitcoinLabsAppComponents.init === 'function') {
+                    BitcoinLabsAppComponents.init(appConfig);
+                }
+            }
+        );
     </script>
 
     <!-- Load visualization.js -->
