@@ -192,6 +192,51 @@ body.visualization-page .app-header {
     box-shadow: 0 0 0 2px rgba(232, 145, 107, 0.1);
 }
 
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-info {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    cursor: help;
+}
+
+.search-info i:hover {
+    color: var(--primary);
+}
+
+.search-tooltip {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(42, 51, 66, 0.15);
+    width: 250px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.search-info:hover .search-tooltip,
+.search-info i:focus + .search-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
 #node-info {
     padding: 15px;
     background-color: var(--bg-primary);
@@ -627,7 +672,44 @@ body.visualization-page .app-header {
 }
 
 .checkbox-label:hover {
-    color: var (--secondary);
+    color: var(--secondary);
+}
+
+/* Segmented Control Styling */
+.segmented-control {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 0;
+}
+
+.segmented-control input[type="radio"] {
+    display: none;
+}
+
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.segmented-control label:hover {
+    color: var(--text-primary);
+}
+
+.segmented-control input[type="radio"]:checked + label {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 2px 4px rgba(232, 145, 107, 0.2);
 }
 
 /* Range slider styling */

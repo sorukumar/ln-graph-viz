@@ -73,7 +73,13 @@
             </div>
             
             <div id="search-container">
-                <input type="text" id="search-input" placeholder="Search nodes by name...">
+                <div class="search-wrapper">
+                    <input type="text" id="search-input" placeholder="Search network...">
+                    <div class="search-info">
+                        <i class="fas fa-info-circle" tabindex="0"></i>
+                        <span class="search-tooltip">Search by Name, PubKey, Type, Channel Category (e.g., 'freeway'), or Cluster (e.g., 'cluster 3')</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Filters Section -->
@@ -89,55 +95,48 @@
                             <i class="fas fa-trophy"></i> Pleb Rank (Top N)
                         </div>
                         <div class="filter-control">
-                            <input type="range" id="pleb-rank-slider" min="0" max="10000" step="100" value="10000">
-                            <div class="filter-value">
-                                <span id="pleb-rank-value">All</span>
+                            <div class="segmented-control">
+                                <input type="radio" id="pleb-all" name="pleb-rank-filter" value="10000" checked>
+                                <label for="pleb-all">All</label>
+                                
+                                <input type="radio" id="pleb-2000" name="pleb-rank-filter" value="2000">
+                                <label for="pleb-2000">Top 2k</label>
+                                
+                                <input type="radio" id="pleb-500" name="pleb-rank-filter" value="500">
+                                <label for="pleb-500">Top 500</label>
+
+                                <input type="radio" id="pleb-100" name="pleb-rank-filter" value="100">
+                                <label for="pleb-100">Top 100</label>
                             </div>
                         </div>
                     </div>
                     
                     <div class="filter-section">
                         <div class="filter-label">
-                            <i class="fas fa-bridge"></i> Node Bridges
+                            <i class="fab fa-bitcoin"></i> Min Capacity (BTC)
                         </div>
                         <div class="filter-control">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="filter-all-nodes" checked>
-                                <span>Show All Nodes</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="filter-important-bridge">
-                                <span>Critical Bridge Only</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="filter-any-bridge">
-                                <span>Any Bridge Only</span>
-                            </label>
+                            <div class="segmented-control" id="dynamic-capacity-filters">
+                                <!-- Dynamically rendered by JS -->
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="filter-section">
                         <div class="filter-label">
-                            <i class="fas fa-link"></i> Channel Bridges
+                            <i class="fas fa-project-diagram"></i> Min Channels
                         </div>
                         <div class="filter-control">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="filter-all-channels" checked>
-                                <span>Show All Channels</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="filter-bridge-channels">
-                                <span>Bridge Channels Only</span>
-                            </label>
+                            <div class="segmented-control" id="dynamic-channels-filters">
+                                <!-- Dynamically rendered by JS -->
+                            </div>
                         </div>
                     </div>
+
                     
                     <div class="filter-actions">
-                        <button class="filter-btn" id="apply-filters">
-                            <i class="fas fa-check"></i> Apply Filters
-                        </button>
-                        <button class="filter-btn secondary" id="clear-filters">
-                            <i class="fas fa-times"></i> Clear
+                        <button class="filter-btn secondary" id="clear-filters" style="width: 100%;">
+                            <i class="fas fa-times"></i> Clear All Filters
                         </button>
                     </div>
                     

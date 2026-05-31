@@ -205,8 +205,8 @@ let isLoadingDataset = false;
 // Global filter state
 let filterState = {
     plebRankMax: null,  // null = show all
-    bridgeFilter: 'all', // 'all', 'important', 'any'
-    channelBridgeFilter: 'all', // 'all', 'bridge_only'
+    minCapacity: 0,     // Minimum capacity in BTC
+    minChannels: 0,     // Minimum number of channels
     isActive: false  // Track if any filters are active
 };
 
@@ -263,6 +263,179 @@ function updateNetworkSummary() {
 
 // Make updateNetworkSummary available globally
 window.updateNetworkSummary = updateNetworkSummary;
+
+// =============================================================================
+// URL STATE SYNC
+// =============================================================================
+
+/**
+ * Updates the browser URL to reflect the current state (selected node, search, filters)
+ * Allows for deep linking to specific graph views
+ */
+function syncURLState() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        let hasChanges = false;
+        
+        // Handle node selection
+        if (selectedNode) {
+            if (urlParams.get('node') !== selectedNode) {
+                urlParams.set('node', selectedNode);
+                hasChanges = true;
+            }
+        } else if (urlParams.has('node')) {
+            urlParams.delete('node');
+            hasChanges = true;
+        }
+        
+        // Handle search
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && searchInput.value.trim().length >= TIMING.SEARCH_MIN_LENGTH) {
+            if (urlParams.get('search') !== searchInput.value.trim()) {
+                urlParams.set('search', searchInput.value.trim());
+                hasChanges = true;
+            }
+        } else if (urlParams.has('search')) {
+            urlParams.delete('search');
+            hasChanges = true;
+        }
+        
+        // Handle filters
+        if (filterState.plebRankMax) {
+            if (urlParams.get('plebRankMax') !== filterState.plebRankMax.toString()) {
+                urlParams.set('plebRankMax', filterState.plebRankMax);
+                hasChanges = true;
+            }
+        } else if (urlParams.has('plebRankMax')) {
+            urlParams.delete('plebRankMax');
+            hasChanges = true;
+        }
+        
+        if (filterState.minCapacity > 0) {
+            if (urlParams.get('minCapacity') !== filterState.minCapacity.toString()) {
+                urlParams.set('minCapacity', filterState.minCapacity);
+                hasChanges = true;
+            }
+        } else if (urlParams.has('minCapacity')) {
+            urlParams.delete('minCapacity');
+            hasChanges = true;
+        }
+
+        if (filterState.minChannels > 0) {
+            if (urlParams.get('minChannels') !== filterState.minChannels.toString()) {
+                urlParams.set('minChannels', filterState.minChannels);
+                hasChanges = true;
+            }
+        } else if (urlParams.has('minChannels')) {
+            urlParams.delete('minChannels');
+            hasChanges = true;
+        }
+        
+
+        
+        // Update URL if changes occurred
+        if (hasChanges) {
+            const newUrl = window.location.pathname + '?' + urlParams.toString();
+            // Don't append empty '?' if no params
+            window.history.replaceState({}, '', urlParams.toString() ? newUrl : window.location.pathname);
+        }
+    } catch (error) {
+        console.warn('Error syncing URL state:', error);
+    }
+}
+
+/**
+ * Reads URL parameters and applies the corresponding state to the visualization
+ * Should be called after the graph is fully loaded and renderer initialized
+ */
+function applyUrlParams(graph, renderer, sidebarManager) {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        let shouldFilter = false;
+        
+        // Apply filters first so they affect the graph before selecting/searching
+        if (urlParams.has('plebRankMax')) {
+            const val = parseInt(urlParams.get('plebRankMax'), 10);
+            if (!isNaN(val)) {
+                filterState.plebRankMax = val;
+                
+                const radio = document.querySelector(`input[name="pleb-rank-filter"][value="${val}"]`);
+                if (radio) radio.checked = true;
+                
+                shouldFilter = true;
+            }
+        }
+        
+        if (urlParams.has('minCapacity')) {
+            const val = parseFloat(urlParams.get('minCapacity'));
+            if (!isNaN(val)) {
+                filterState.minCapacity = val;
+                
+                const radio = document.querySelector(`input[name="min-capacity-filter"][value="${val}"]`);
+                if (radio) radio.checked = true;
+                
+                shouldFilter = true;
+            }
+        }
+
+        if (urlParams.has('minChannels')) {
+            const val = parseInt(urlParams.get('minChannels'), 10);
+            if (!isNaN(val)) {
+                filterState.minChannels = val;
+                
+                const radio = document.querySelector(`input[name="min-channels-filter"][value="${val}"]`);
+                if (radio) radio.checked = true;
+                
+                shouldFilter = true;
+            }
+        }
+        
+
+        
+        // Execute filter logic if any filters were found
+        if (shouldFilter && typeof applyFilters === 'function') {
+            filterState.isActive = true;
+            applyFilters(graph, renderer);
+        }
+        
+        // Apply search
+        if (urlParams.has('search')) {
+            const searchVal = urlParams.get('search');
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = searchVal;
+                // Dispatch input event to trigger search handler
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+        
+        // Apply node selection
+        if (urlParams.has('node')) {
+            const nodeId = urlParams.get('node');
+            if (graph.hasNode(nodeId)) {
+                selectedNode = nodeId;
+                
+                // Update sidebar
+                const nodeAttributes = graph.getNodeAttributes(nodeId);
+                sidebarManager.updateNodeInfo({ node: nodeId, attributes: nodeAttributes });
+                
+                // Refresh renderer to apply visual reducers (graying out non-connected)
+                renderer.refresh();
+                
+                // Animate camera to center on the selected node
+                const nodePosition = renderer.getNodeDisplayData(nodeId);
+                if (nodePosition) {
+                    renderer.getCamera().animate(
+                        { x: nodePosition.x, y: nodePosition.y, ratio: 0.3 }, 
+                        { duration: TIMING.ZOOM_ANIMATION }
+                    );
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Error applying URL parameters:', error);
+    }
+}
 
 // =============================================================================
 // CLEANUP FUNCTION
@@ -1002,6 +1175,7 @@ function setupEventHandlers(renderer, graph, tooltipManager, sidebarManager) {
         
         // Refresh renderer to apply the reducers
         renderer.refresh();
+        syncURLState();
     });
     
     // Click on stage (background) to deselect
@@ -1010,6 +1184,7 @@ function setupEventHandlers(renderer, graph, tooltipManager, sidebarManager) {
             selectedNode = null;
             sidebarManager.reset();
             renderer.refresh();
+            syncURLState();
         }
     });
 
@@ -1235,6 +1410,7 @@ function createVisualization(data, jsonFile) {
                 alias: node.alias,
                 nodeType: nodeType,
                 totalCapacity: formattedCapacity,
+                rawCapacity: totalCapacity,
                 totalChannels: totalChannels,
                 channelSegment: channelSegment,
                 categoryCount: categoryCount,
@@ -1449,6 +1625,7 @@ function createVisualization(data, jsonFile) {
             
             // Update network summary after search
             updateNetworkSummary();
+            syncURLState();
         });
     }
 
@@ -1554,13 +1731,19 @@ function createVisualization(data, jsonFile) {
             const rankNum = typeof plebRank === 'string' ? parseInt(plebRank) : plebRank;
             if (isNaN(rankNum) || rankNum > filterState.plebRankMax) return false;
         }
-        
-        // Bridge node filter
-        if (filterState.bridgeFilter === 'important') {
-            if (!attrs.isImportantBridgeNode) return false;
-        } else if (filterState.bridgeFilter === 'any') {
-            if (!attrs.isBridgeNode && !attrs.isImportantBridgeNode) return false;
+
+        // Min Capacity filter (slider is in BTC, data is in satoshis)
+        if (filterState.minCapacity > 0) {
+            const minCapacitySats = filterState.minCapacity * 100000000;
+            if ((attrs.rawCapacity || 0) < minCapacitySats) return false;
         }
+
+        // Min Channels filter
+        if (filterState.minChannels > 0) {
+            if ((attrs.totalChannels || 0) < filterState.minChannels) return false;
+        }
+        
+
         
         return true;
     }
@@ -1595,113 +1778,120 @@ function createVisualization(data, jsonFile) {
         
         // Update network summary after filters
         updateNetworkSummary();
+        syncURLState();
     }
     
-    /**
-     * Update filter UI elements
-     */
     function updateFilterUI() {
         document.getElementById('visible-count').textContent = totalNodeCount;
         document.getElementById('total-count').textContent = totalNodeCount;
-    }
-    
-    // Pleb Rank slider
-    const plebRankSlider = document.getElementById('pleb-rank-slider');
-    const plebRankValue = document.getElementById('pleb-rank-value');
-    
-    if (plebRankSlider && plebRankValue) {
-        plebRankSlider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            if (value >= 10000) {
-                plebRankValue.textContent = 'All';
-            } else {
-                plebRankValue.textContent = `Top ${value}`;
-            }
-        });
-    }
-    
-    // Bridge node filter checkboxes (radio button behavior)
-    const filterAllNodes = document.getElementById('filter-all-nodes');
-    const filterImportantBridge = document.getElementById('filter-important-bridge');
-    const filterAnyBridge = document.getElementById('filter-any-bridge');
-    
-    if (filterAllNodes && filterImportantBridge && filterAnyBridge) {
-        filterAllNodes.addEventListener('change', () => {
-            if (filterAllNodes.checked) {
-                filterImportantBridge.checked = false;
-                filterAnyBridge.checked = false;
-            }
-        });
         
-        filterImportantBridge.addEventListener('change', () => {
-            if (filterImportantBridge.checked) {
-                filterAllNodes.checked = false;
-                filterAnyBridge.checked = false;
-            }
-        });
+        // Dynamically render segmented options based on the loaded dataset
+        const capContainer = document.getElementById('dynamic-capacity-filters');
+        const chanContainer = document.getElementById('dynamic-channels-filters');
         
-        filterAnyBridge.addEventListener('change', () => {
-            if (filterAnyBridge.checked) {
-                filterAllNodes.checked = false;
-                filterImportantBridge.checked = false;
+        if (capContainer && chanContainer) {
+            let capOptions = [];
+            let chanOptions = [];
+            
+            if (jsonFile && jsonFile.includes('gfree')) {
+                // Freeways -> 1 BTC
+                capOptions = [
+                    { id: 'cap-all', val: 0, label: 'All', checked: true },
+                    { id: 'cap-2', val: 2, label: '2+' },
+                    { id: 'cap-5', val: 5, label: '5+' },
+                    { id: 'cap-10', val: 10, label: '10+' }
+                ];
+                chanOptions = [
+                    { id: 'chan-all', val: 0, label: 'All', checked: true },
+                    { id: 'chan-25', val: 25, label: '25+' },
+                    { id: 'chan-100', val: 100, label: '100+' },
+                    { id: 'chan-250', val: 250, label: '250+' }
+                ];
+            } else if (jsonFile && jsonFile.includes('ghigh')) {
+                // Highways -> >5M sats
+                capOptions = [
+                    { id: 'cap-all', val: 0, label: 'All', checked: true },
+                    { id: 'cap-01', val: 0.1, label: '0.1+' },
+                    { id: 'cap-1', val: 1, label: '1+' },
+                    { id: 'cap-5', val: 5, label: '5+' }
+                ];
+                chanOptions = [
+                    { id: 'chan-all', val: 0, label: 'All', checked: true },
+                    { id: 'chan-10', val: 10, label: '10+' },
+                    { id: 'chan-25', val: 25, label: '25+' },
+                    { id: 'chan-100', val: 100, label: '100+' }
+                ];
+            } else {
+                // Complete/gall -> all nodes
+                capOptions = [
+                    { id: 'cap-all', val: 0, label: 'All', checked: true },
+                    { id: 'cap-001', val: 0.01, label: '0.01+' },
+                    { id: 'cap-01', val: 0.1, label: '0.1+' },
+                    { id: 'cap-1', val: 1, label: '1+' }
+                ];
+                chanOptions = [
+                    { id: 'chan-all', val: 0, label: 'All', checked: true },
+                    { id: 'chan-5', val: 5, label: '5+' },
+                    { id: 'chan-10', val: 10, label: '10+' },
+                    { id: 'chan-50', val: 50, label: '50+' }
+                ];
             }
-        });
+            
+            // Inject Capacity Options
+            capContainer.innerHTML = capOptions.map(opt => `
+                <input type="radio" id="${opt.id}" name="min-capacity-filter" value="${opt.val}" ${opt.checked ? 'checked' : ''}>
+                <label for="${opt.id}">${opt.label}</label>
+            `).join('');
+            
+            // Inject Channels Options
+            chanContainer.innerHTML = chanOptions.map(opt => `
+                <input type="radio" id="${opt.id}" name="min-channels-filter" value="${opt.val}" ${opt.checked ? 'checked' : ''}>
+                <label for="${opt.id}">${opt.label}</label>
+            `).join('');
+        }
     }
     
-    // Channel bridge filter checkboxes (radio button behavior)
-    const filterAllChannels = document.getElementById('filter-all-channels');
-    const filterBridgeChannels = document.getElementById('filter-bridge-channels');
-    
-    if (filterAllChannels && filterBridgeChannels) {
-        filterAllChannels.addEventListener('change', () => {
-            if (filterAllChannels.checked) {
-                filterBridgeChannels.checked = false;
-            }
-        });
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    const debouncedApplyFilters = debounce(() => {
+        // Update filter state from UI
+        const plebRadio = document.querySelector('input[name="pleb-rank-filter"]:checked');
+        if (plebRadio) {
+            const plebVal = parseInt(plebRadio.value, 10);
+            filterState.plebRankMax = plebVal >= 10000 ? null : plebVal;
+        }
         
-        filterBridgeChannels.addEventListener('change', () => {
-            if (filterBridgeChannels.checked) {
-                filterAllChannels.checked = false;
-            }
-        });
-    }
+        const capRadio = document.querySelector('input[name="min-capacity-filter"]:checked');
+        if (capRadio) filterState.minCapacity = parseFloat(capRadio.value);
+        
+        const chanRadio = document.querySelector('input[name="min-channels-filter"]:checked');
+        if (chanRadio) filterState.minChannels = parseInt(chanRadio.value, 10);
+        
+        // Check if any filters are active
+        filterState.isActive = 
+            filterState.plebRankMax !== null ||
+            filterState.minCapacity > 0 ||
+            filterState.minChannels > 0;
+        
+        applyFilters();
+    }, 50);
+
+    // Setup Listeners
+    // Radios (handles all segmented controls: nodes, channels, capacity, min-channels, pleb-rank)
     
-    // Apply Filters button
-    const applyFiltersBtn = document.getElementById('apply-filters');
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', () => {
-            // Update filter state from UI
-            const plebRankValue = parseInt(plebRankSlider.value);
-            filterState.plebRankMax = plebRankValue >= 10000 ? null : plebRankValue;
-            
-            // Bridge node filter
-            if (filterImportantBridge.checked) {
-                filterState.bridgeFilter = 'important';
-            } else if (filterAnyBridge.checked) {
-                filterState.bridgeFilter = 'any';
-            } else {
-                filterState.bridgeFilter = 'all';
-            }
-            
-            // Channel bridge filter
-            if (filterBridgeChannels.checked) {
-                filterState.channelBridgeFilter = 'bridge_only';
-            } else {
-                filterState.channelBridgeFilter = 'all';
-            }
-            
-            // Check if any filters are active
-            filterState.isActive = 
-                filterState.plebRankMax !== null ||
-                filterState.bridgeFilter !== 'all' ||
-                filterState.channelBridgeFilter !== 'all';
-            
-            // Apply filters
-            applyFilters();
-            
-            console.log('✅ Filters applied:', filterState);
-        });
-    }
+    // Radios (handles all segmented controls: nodes, channels, capacity, min-channels)
+    
+    // Radios
+    const filterRadios = document.querySelectorAll('input[type="radio"]');
+    filterRadios.forEach(radio => {
+        radio.addEventListener('change', debouncedApplyFilters);
+    });
     
     // Clear Filters button
     const clearFiltersBtn = document.getElementById('clear-filters');
@@ -1709,20 +1899,21 @@ function createVisualization(data, jsonFile) {
         clearFiltersBtn.addEventListener('click', () => {
             // Reset filter state
             filterState.plebRankMax = null;
-            filterState.bridgeFilter = 'all';
-            filterState.channelBridgeFilter = 'all';
+            filterState.minCapacity = 0;
+            filterState.minChannels = 0;
             filterState.isActive = false;
             
             // Reset UI
-            plebRankSlider.value = 10000;
-            plebRankValue.textContent = 'All';
+            const plebAllRadio = document.getElementById('pleb-all');
+            if (plebAllRadio) plebAllRadio.checked = true;
             
-            filterAllNodes.checked = true;
-            filterImportantBridge.checked = false;
-            filterAnyBridge.checked = false;
+            const capAllRadio = document.getElementById('cap-all');
+            if (capAllRadio) capAllRadio.checked = true;
             
-            filterAllChannels.checked = true;
-            filterBridgeChannels.checked = false;
+            const chanAllRadio = document.getElementById('chan-all');
+            if (chanAllRadio) chanAllRadio.checked = true;
+            
+            // (Node and channel bridge filter radios have been removed)
             
             // Show all nodes and edges
             graph.forEachNode(nodeId => {
@@ -1737,8 +1928,12 @@ function createVisualization(data, jsonFile) {
             
             // Update network summary after clearing filters
             updateNetworkSummary();
+            syncURLState();
             
             console.log('✅ Filters cleared');
         });
     }
+    
+    // Apply URL params immediately after setting up UI
+    applyUrlParams(graph, renderer, sidebarManager);
 }
