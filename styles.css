@@ -1,17 +1,8 @@
-/* Import Bitcoin Data Labs CSS variables */
 :root {
-    --primary: #E8916B;
     --primary-dark: #d67e54;
-    --secondary: #2A3342;
     --accent-cool: #8BBEDC;
     --accent-warm: #F4C2A1;
-    --bg-primary: #FDFBF9;
-    --bg-secondary: #F5F1EE;
-    --text-primary: #2A3342;
-    --text-secondary: #5F6C7E;
-    --surface: #FFFFFF;
-    --border: #E5E1DC;
-    --bitcoin-orange: #f7931a;
+    --bitcoin-orange: #E8916B;
 }
 
 /* Base styles for all pages */
