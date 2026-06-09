@@ -1,14 +1,14 @@
+/* Override or define local variables extending Bitcoin Data Labs CSS */
 :root {
     --primary-dark: #d67e54;
-    --accent-cool: #8BBEDC;
-    --accent-warm: #F4C2A1;
-    --bitcoin-orange: #E8916B;
+    --border: #E5E1DC;
 }
 
 /* Base styles for all pages */
 body {
     margin: 0;
-    padding: 120px 0 0 0; /* Account for fixed header */
+    padding: 120px 0 0 0;
+    /* Account for fixed header */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-secondary);
     color: var(--text-primary);
@@ -112,7 +112,8 @@ body.visualization-page .app-header {
 /* Back button for visualization pages */
 .back-button {
     position: fixed;
-    top: 130px; /* Adjusted to account for header */
+    top: 130px;
+    /* Adjusted to account for header */
     left: 20px;
     z-index: 1000;
     padding: 10px 15px;
@@ -141,7 +142,8 @@ body.visualization-page .app-header {
 /* Container and layout styles */
 #container {
     display: flex;
-    height: calc(100vh - 120px); /* Subtract header height */
+    height: calc(100vh - 120px);
+    /* Subtract header height */
 }
 
 #graph-container {
@@ -222,7 +224,7 @@ body.visualization-page .app-header {
 }
 
 .search-info:hover .search-tooltip,
-.search-info i:focus + .search-tooltip {
+.search-info i:focus+.search-tooltip {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -351,7 +353,7 @@ body.visualization-page .app-header {
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px 12px;
-   font-size: 12px;
+    font-size: 12px;
     color: var(--text-secondary);
     box-shadow: 0 2px 8px rgba(42, 51, 66, 0.08);
     z-index: 99;
@@ -366,8 +368,15 @@ body.visualization-page .app-header {
 }
 
 @keyframes fadeInOut {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 0.4; }
+
+    0%,
+    100% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
 }
 
 /* Network Summary Box */
@@ -697,7 +706,7 @@ body.visualization-page .app-header {
     color: var(--text-primary);
 }
 
-.segmented-control input[type="radio"]:checked + label {
+.segmented-control input[type="radio"]:checked+label {
     background-color: var(--primary);
     color: white;
     box-shadow: 0 2px 4px rgba(232, 145, 107, 0.2);
@@ -815,74 +824,76 @@ input[type="range"]::-moz-range-thumb:hover {
 
 /* Mobile responsiveness */
 @media screen and (max-width: 768px) {
+
     body,
     body.visualization-page {
-        padding-top: 120px !important; /* More space for mobile header */
+        padding-top: 120px !important;
+        /* More space for mobile header */
     }
-    
+
     .visualization-grid {
         grid-template-columns: 1fr;
         padding: 10px;
     }
-    
+
     .page-header {
         padding: 20px 10px;
     }
-    
+
     .page-header h1 {
         font-size: 1.5rem;
     }
-    
+
     #container {
         height: calc(100vh - 120px);
         flex-direction: column;
     }
-    
+
     #sidebar {
         width: 100%;
         height: 200px;
         order: 2;
         box-shadow: 0 -2px 8px rgba(42, 51, 66, 0.08);
     }
-    
+
     #graph-container {
         order: 1;
         height: calc(100vh - 320px);
         border-right: none;
         border-bottom: 1px solid var(--border);
     }
-    
+
     /* Responsive summary title */
     .network-summary {
         top: 10px;
         left: 10px;
     }
-    
+
     .summary-title {
         font-size: 16px;
     }
-    
+
     .summary-subtitle {
         font-size: 12px;
     }
-    
+
     .controls {
         bottom: 10px;
         left: 10px;
         gap: 8px;
     }
-    
+
     .control-btn {
         padding: 8px 10px;
         font-size: 12px;
     }
-    
+
     .legend {
         top: 10px;
         right: 10px;
         padding: 8px;
     }
-    
+
     .back-button {
         top: 130px;
         left: 10px;
@@ -895,12 +906,12 @@ input[type="range"]::-moz-range-thumb:hover {
     .controls {
         flex-wrap: wrap;
     }
-    
+
     .control-btn {
         padding: 6px 8px;
         font-size: 11px;
     }
-    
+
     .legend {
         font-size: 10px;
     }
